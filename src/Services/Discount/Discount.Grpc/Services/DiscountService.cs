@@ -69,4 +69,3 @@ namespace Discount.Grpc.Services
         }
     }
 }
-1
