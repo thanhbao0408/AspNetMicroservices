@@ -37,6 +37,13 @@ services:
     ports:
         - "1433:1433"
 
+  rabbitmq:
+    container_name: rabbitmq
+    restart: always
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+
   pgadmin:
     container_name: pgadmin
     environment:
@@ -93,7 +100,6 @@ services:
     ports:
       - "8002:80"
 
-
   discount.grpc:
     container_name: discount.grpc
     environment:
@@ -118,3 +124,4 @@ services:
     ports:
       - "8004:80"
 
+      
