@@ -27,8 +27,8 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
     using (var context = scope.ServiceProvider.GetService<DiscountDbContext>())
     {
-        Console.WriteLine(context.Database.GetConnectionString());
-        context.Database.Migrate();
+        //Console.WriteLine(context.Database.GetConnectionString());
+        //context.Database.Migrate();
     }
 }
 

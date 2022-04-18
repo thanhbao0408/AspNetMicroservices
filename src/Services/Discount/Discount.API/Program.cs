@@ -9,8 +9,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
-
 builder.Services.AddDbContext<DiscountDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -20,9 +18,11 @@ builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
 
 using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<DiscountDbContext>>();
+    logger.LogError("HELLOOOOOOO - " + builder.Configuration.GetConnectionString("DefaultConnection"));
+
     using (var context = scope.ServiceProvider.GetService<DiscountDbContext>())
     {
-        Console.WriteLine(context.Database.GetConnectionString());
         context.Database.Migrate();
     }
 }
