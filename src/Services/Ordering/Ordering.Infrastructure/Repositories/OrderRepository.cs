@@ -16,10 +16,25 @@ namespace Ordering.Infrastructure.Repositories
 
         public async Task<IEnumerable<Order>> GetOrdersByUserName(string userName)
         {
-            var orderList = await _dbContext.Orders
-                                .Where(o => o.UserName == userName)
-                                .ToListAsync();
-            return orderList;
+            try
+            {
+                var test =  _dbContext.Database.GetConnectionString();
+                var abc = await _dbContext.Orders.ToListAsync();
+                if(!(await _dbContext.Orders
+                    .Where(o => o.UserName == userName)
+                    .AnyAsync()))
+                {
+                    return null; 
+                }
+                var orderList = await _dbContext.Orders
+                                    .Where(o => o.UserName == userName)
+                                    .ToListAsync();
+                return orderList;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
