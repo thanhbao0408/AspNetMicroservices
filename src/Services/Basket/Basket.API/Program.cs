@@ -1,7 +1,9 @@
 using Basket.API.GrpcServices;
 using Basket.API.Repositories;
+using Common.Logging;
 using Discount.Grpc.Protos;
 using MassTransit;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +34,8 @@ builder.Services.AddMassTransit(config => {
 });
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 var app = builder.Build();
 

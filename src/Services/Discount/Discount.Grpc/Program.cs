@@ -4,6 +4,8 @@ using Discount.Grpc.Services;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Discount.Grpc;
+using Common.Logging;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,8 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
         //context.Database.Migrate();
     }
 }
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 var app = builder.Build();
 

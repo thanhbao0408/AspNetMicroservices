@@ -1,3 +1,4 @@
+using Common.Logging;
 using Ocelot.Cache.CacheManager;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
@@ -15,12 +16,8 @@ builder.Services.AddOcelot()
         config.WithDictionaryHandle();
     });
 
+builder.Host.UseSerilog(SeriLogger.Configure);
 
-builder.Host.UseSerilog((ctx, lc) =>
-    lc
-        .MinimumLevel.Debug()
-        .WriteTo.Console()
-        .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day));
 var app = builder.Build();
 
 app.MapGet("/", async context =>

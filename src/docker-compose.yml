@@ -64,12 +64,162 @@ services:
       context: .
       dockerfile: ApiGateways/Shopping.Aggregator/Dockerfile
 
+## Start ELK stacks
+
+  # The 'setup' service runs a one-off script which initializes the
+  # 'logstash_internal' and 'kibana_system' users inside Elasticsearch with the
+  # values of the passwords defined in the '.env' file.
+  #
+  # This task is only performed during the *initial* startup of the stack. On all
+  # subsequent runs, the service simply returns immediately, without performing
+  # any modification to existing users.
+  # any modification to existing users.
+  setup:
+    build:
+      context: ElasticSearch/setup/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    init: true
+    volumes:
+      - setup:/state:Z
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+
+  es01:
+    container_name: es01
+    depends_on:
+        - setup
+    build:
+      context: ElasticSearch/elasticsearch/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./ElasticSearch/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - es01:/usr/share/elasticsearch/data:z
+    ports:
+      - "9200:9200"
+    environment:
+      ES_JAVA_OPTS: -Xmx256m -Xms256m
+      # Bootstrap password.
+      # Used to initialize the keystore during the initial startup of
+      # Elasticsearch. Ignored on subsequent runs.
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      #discovery.type: single-node
+      node.name: es01
+      cluster.initial_master_nodes: es01,es02,es03
+      discovery.seed_hosts: es02,es03
+      xpack.security.enabled: false
+
+  es02:
+    container_name: es02
+    depends_on: 
+        - es01
+    build:
+      context: ElasticSearch/elasticsearch/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./ElasticSearch/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - es02:/usr/share/elasticsearch/data:z
+    environment:
+      ES_JAVA_OPTS: -Xmx256m -Xms256m
+      # Bootstrap password.
+      # Used to initialize the keystore during the initial startup of
+      # Elasticsearch. Ignored on subsequent runs.
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      #discovery.type: single-node
+      node.name: es02
+      cluster.initial_master_nodes: es01,es02,es03
+      discovery.seed_hosts: es01,es03
+      xpack.security.enabled: false
+
+  es03:
+    container_name: es03
+    depends_on: 
+        - es02
+    build:
+      context: ElasticSearch/elasticsearch/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./ElasticSearch/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - es03:/usr/share/elasticsearch/data:z
+    environment:
+      ES_JAVA_OPTS: -Xmx256m -Xms256m
+      # Bootstrap password.
+      # Used to initialize the keystore during the initial startup of
+      # Elasticsearch. Ignored on subsequent runs.
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      #discovery.type: single-node
+      node.name: es02
+      cluster.initial_master_nodes: es01,es02,es03
+      discovery.seed_hosts: es01,es02
+      xpack.security.enabled: false
+
+  logstash:
+    build:
+      context: ElasticSearch/logstash/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./ElasticSearch/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./ElasticSearch/logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: -Xmx256m -Xms256m
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
+    #networks:
+    #  - elk
+    depends_on:
+      - es01
+      - es02
+      - es03
+
+  kibana:
+    build:
+      context: ElasticSearch/kibana/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./ElasticSearch/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    ports:
+      - "5601:5601"
+    environment:
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+    #networks:
+    #  - elk
+    depends_on:
+      - es01
+      - es02
+      - es03
+
+## End ELK stakcs
+
 volumes:
     mongo_data:
     portainer_data:
     postgres_data:
     pgadmin_data:
+    setup:
+    es01:
+    es02:
+    es03:
 
+#networks:
+#  elk:
+#    driver: bridge
 
 
 

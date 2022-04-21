@@ -1,6 +1,8 @@
+using Common.Logging;
 using Discount.API.Data;
 using Discount.API.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,8 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
         context.Database.Migrate();
     }
 }
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 var app = builder.Build();
 

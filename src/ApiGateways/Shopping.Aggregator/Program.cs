@@ -1,4 +1,6 @@
+using Common.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Shopping.Aggregator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,8 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shopping.Aggregator", Version = "v1" });
 });
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 var app = builder.Build();
 
