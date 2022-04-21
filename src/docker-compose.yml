@@ -159,7 +159,7 @@ services:
       # Use single node discovery in order to disable production mode and avoid bootstrap checks.
       # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
       #discovery.type: single-node
-      node.name: es02
+      node.name: es03
       cluster.initial_master_nodes: es01,es02,es03
       discovery.seed_hosts: es01,es02
       xpack.security.enabled: false
