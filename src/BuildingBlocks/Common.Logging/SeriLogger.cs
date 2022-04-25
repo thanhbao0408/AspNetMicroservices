@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
 using System;
+using System.Diagnostics;
 
 namespace Common.Logging
 {
@@ -12,7 +13,6 @@ namespace Common.Logging
            (context, configuration) =>
            {
                var elasticUri = context.Configuration.GetValue<string>("ElasticConfiguration:Uri");
-
                configuration
                     .Enrich.FromLogContext()
                     .Enrich.WithMachineName()
@@ -25,7 +25,9 @@ namespace Common.Logging
                             IndexFormat = $"applogs-{context.HostingEnvironment.ApplicationName?.ToLower().Replace(".", "-")}-{context.HostingEnvironment.EnvironmentName?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
                             AutoRegisterTemplate = true,
                             NumberOfShards = 2,
-                            NumberOfReplicas = 1
+                            NumberOfReplicas = 1,
+                                // https://stackoverflow.com/questions/71141773/serilog-elasticsearch-8-sink-exception-action-metadata-line-1-contains-an-u
+                                TypeName = null,
                         })
                     .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
                     .Enrich.WithProperty("Application", context.HostingEnvironment.ApplicationName)

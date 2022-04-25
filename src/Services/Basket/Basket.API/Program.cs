@@ -26,7 +26,8 @@ builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>
     (o => o.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]));
 builder.Services.AddScoped<DiscountGrpcService>();
 
-builder.Services.AddMassTransit(config => {
+builder.Services.AddMassTransit(config =>
+{
     config.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
@@ -34,6 +35,10 @@ builder.Services.AddMassTransit(config => {
 });
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+
+Serilog.Debugging.SelfLog.Enable(Console.Error);
+
 
 builder.Host.UseSerilog(SeriLogger.Configure);
 

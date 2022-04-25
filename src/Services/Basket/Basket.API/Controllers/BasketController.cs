@@ -17,18 +17,20 @@ namespace Basket.API.Controllers
         private readonly DiscountGrpcService _discountGrpcService;
         private readonly IMapper _mapper;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly ILogger<BasketController> _logger;
 
         public BasketController(
             IBasketRepository repository,
             DiscountGrpcService discountGrpcService,
             IPublishEndpoint publishEndpoint,
-            IMapper mapper
-            )
+            IMapper mapper,
+            ILogger<BasketController> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _discountGrpcService = discountGrpcService ?? throw new ArgumentNullException(nameof(discountGrpcService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+            _logger = logger;
         }
 
         [HttpGet("{userName}", Name = "GetBasket")]
@@ -90,6 +92,15 @@ namespace Basket.API.Controllers
             await _repository.DeleteBasket(basket.UserName);
 
             return Accepted();
+        }
+
+        [HttpGet("random")]
+        public int GetRandomvalue()
+        {
+            var random = new Random();
+            var randomValue = random.Next(0, 100);
+            _logger.LogInformation($"Random Value is {randomValue}");
+            return randomValue;
         }
     }
 }
