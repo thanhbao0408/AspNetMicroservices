@@ -1,6 +1,8 @@
 using Common.Logging;
 using EventBus.Messages.Common;
+using HealthChecks.UI.Client;
 using MassTransit;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Ordering.API.EventBusConsumer;
 using Ordering.API.Extensions;
 using Ordering.Application;
@@ -48,6 +50,9 @@ builder.MigrateDatabase<OrderContext>((context,services) =>
 
 builder.Host.UseSerilog(SeriLogger.Configure);
 
+builder.Services.AddHealthChecks()
+        .AddDbContextCheck<OrderContext>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -60,5 +65,11 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/hc", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();

@@ -2,7 +2,10 @@ using Basket.API.GrpcServices;
 using Basket.API.Repositories;
 using Common.Logging;
 using Discount.Grpc.Protos;
+using HealthChecks.UI.Client;
 using MassTransit;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,8 +39,10 @@ builder.Services.AddMassTransit(config =>
 
 builder.Services.AddAutoMapper(typeof(Program));
 
-
 Serilog.Debugging.SelfLog.Enable(Console.Error);
+
+builder.Services.AddHealthChecks()
+        .AddRedis(builder.Configuration["CacheSettings:ConnectionString"], "Redis Health", HealthStatus.Degraded);
 
 
 builder.Host.UseSerilog(SeriLogger.Configure);
@@ -55,6 +60,12 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers(); 
+
+app.MapHealthChecks("/hc", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();

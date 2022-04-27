@@ -207,6 +207,12 @@ services:
 
 ## End ELK stakcs
 
+  webstatus:
+    image: ${DOCKER_REGISTRY-}webstatus
+    build:
+      context: .
+      dockerfile: WebApps/WebStatus/Dockerfile
+
 volumes:
     mongo_data:
     portainer_data:
@@ -220,6 +226,7 @@ volumes:
 #networks:
 #  elk:
 #    driver: bridge
+
 
 
 

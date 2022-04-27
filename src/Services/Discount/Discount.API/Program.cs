@@ -1,6 +1,8 @@
 using Common.Logging;
 using Discount.API.Data;
 using Discount.API.Repositories;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -20,14 +22,14 @@ builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
 
 using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<DiscountDbContext>>();
-    logger.LogError("HELLOOOOOOO - " + builder.Configuration.GetConnectionString("DefaultConnection"));
-
     using (var context = scope.ServiceProvider.GetService<DiscountDbContext>())
     {
         context.Database.Migrate();
     }
 }
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 builder.Host.UseSerilog(SeriLogger.Configure);
 
@@ -45,5 +47,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/hc", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();
